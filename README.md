@@ -16,6 +16,21 @@ This repository contains notes on the most common tasks on Linux systems and is 
   - [Manage Networking](#manage-networking)
     - [NetworkManager](#networkmanager)
   - [Install and Update Software Packages](#install-and-update-software-packages)
+  - [Improve Command-line Productivity](#improve-command-line-productivity)
+  - [Schedule Future Tasks](#schedule-future-tasks)
+  - [Analyze and Store Logs](#analyze-and-store-logs)
+    - [Sample Rules of the rsyslog Service](#sample-rules-of-the-rsyslog-service)
+    - [System Journal](#system-journal)
+    - [rsyslog vs journald](#rsyslog-vs-journald)
+    - [Maintain accurate time](#maintain-accurate-time)
+  - [Archive and Transfer Files](#archive-and-transfer-files)
+  - [Tune System Performance](#tune-system-performance)
+  - [Manage SELinux Security](#manage-selinux-security)
+  - [Manage Basic Storage](#manage-basic-storage)
+  - [Manage Storage Stack](#manage-storage-stack)
+  - [Access Network-Attached Storage](#access-network-attached-storage)
+  - [Control the Boot Process](#control-the-boot-process)
+  - [Manage Network Security](#manage-network-security)
   - [Important Files](#important-files)
     - [Log Files](#log-files)
     - [Users, groups and Authentication](#users-groups-and-authentication)
@@ -241,6 +256,302 @@ This repository contains notes on the most common tasks on Linux systems and is 
     - `dnf config-manager --enable REPONAME` : enable and disable repositories
     - `dnf config-manager --add-repo="REPOURL"` : add repo
     - `dnf config-manager --disable REPONAME`
+
+
+## Improve Command-line Productivity
+- Run commands more efficiently by using advanced features of the Bash shell, shell scripts, and various Red Hat Enterprise Linux utilities.
+- Run repetitive tasks with for loops, evaluate exit codes from commands and scripts, run tests with operators, and create conditional structures with if statements.
+- Create regular expressions to match data, apply regular expressions to text files with the grep command, and use grep to search files and data from piped commands.
+
+## Schedule Future Tasks
+- Schedule tasks to execute at a specific time and date.
+- Set up a command to run once at a future time.
+- Schedule commands to run on a repeating schedule with a user's crontab file.
+    - check user is in /etc/cron.allow or not in /etc/cron.deny
+    - doc for syntax $ man 5 crontab
+    - Syntax: min h day-of-month month weekday command
+- Schedule commands to run on a repeating schedule with the system crontab file and directories.
+    - defined in etc/cron.d or etc/crontab (the latter explains the syntax too)
+    - nowadays more often with anacrontab
+        - runs the daily, weekly, and monthly jobs from the /etc/anacrontab configuration file
+        - Files in the /var/spool/anacron/ directory determine the daily, weekly, and monthly jobs
+- Enable and disable systemd timers, and configure a timer that manages temporary files.
+    - systemd timer unit activates another unit of a different type (such as a service), whose unit name matches the timer unit name
+    - have the .timer file ending
+    -   [Timer]
+        OnCalendar=*:00/10
+    - doc: $ man 5 systemd.timer
+
+## Analyze and Store Logs
+- log files usually stored in /var/log/
+
+| File | Description |
+|---|---|
+| /var/log/messages | Most syslog messages except debug and special cases below |
+| /var/log/secure | Syslog messages about security and authentication events |
+| /var/log/maillog | Syslog messages about the mail server |
+| /var/log/cron | Syslog messages about scheduled job execution |
+| /var/log/boot.log | Non-syslog console messages about system startup |
+
+- log messages categorized by
+  - **facility** (the subsystem that produces the message) and..
+  - **priority** (the message'sseverity)
+  
+| Code | Facility | Facility Description |
+|------|----------|----------------------|
+| 0 | kern | Kernel messages |
+| 1 | user | User-level messages |
+| 2 | mail | Mail system messages |
+| 3 | daemon | System daemon messages |
+| 4 | auth | Authentication and security messages |
+| 5 | syslog | Internal syslog messages |
+| 6 | lpr | Printer messages |
+| 7 | news | Network news messages |
+| 8 | uucp | UUCP protocol messages |
+| 9 | cron | Clock daemon messages |
+| 10 | authpriv | Non-system authorization messages |
+| 11 | ftp | FTP protocol messages |
+| 16-23 | local0 to local7 | Custom local messages |
+
+| Code | Priority | Priority Description |
+|------|----------|----------------------|
+| 0 | emerg | System is unusable |
+| 1 | alert | Action must be taken immediately |
+| 2 | crit | Critical condition |
+| 3 | err | Non-critical error condition |
+| 4 | warning | Warning condition |
+| 5 | notice | Normal but significant event |
+| 6 | info | Informational event |
+| 7 | debug | Debugging-level message |
+
+- rsyslog service uses the facility and priority of log messages to determine how to handle them
+- rules for this stored in /etc/rsyslog.conf and any file in /etc/rsyslog.d with .conf extension
+  - format: <facility>.<priority>    <log-file>
+
+### Sample Rules of the rsyslog Service
+```
+#### RULES ####
+# Log all kernel messages to the console.
+# Logging much else clutters up the screen.
+#kern.* /dev/console
+
+# Log anything (except mail) of level info or higher.
+# Don't log private authentication messages!
+*.info;mail.none;authpriv.none;cron.none /var/log/messages
+
+# The authpriv file has restricted access.
+authpriv.* /var/log/secure
+```
+
+- analysing log messages
+  - earliest message at the start and the latest message at the end of the log file
+  - standard rsyslog format
+    - time stamp eg. **Mar 20 20:11:48**
+    - host that sends the log message eg. **localhost**
+    - program or process name and PID number that sent the log message eg. **sshd[1433]**
+    - message text eg. **Failed login..**
+    - full example: *Mar 20 20:11:48 localhost sshd[1433]: Failed password for student from 172.25.0.10 port 59344 ssh2*
+- manually send log messages with `logger -p <facility>.<priority> "<message>"` (default *user.notive* if no -p option)
+
+### System Journal
+- another logging service with slightly different features compared to `rsyslog`
+  - both can coexist on the same machine without any problems
+- journald is not persistent by default (logs stored in /run/log/journal)
+  - to make persistent set `Storage=persistent` in */etc/systemd/journald.conf*
+  - this change sthe log directory to */var/log/journal*
+  - if `Storage=auto` the system acts persistent if */var/log/journal* exists
+  - if `Storage=none` system drops all logs
+- used with `journalctl`
+  - `journalctl` : view all messages in the journal
+  - `journalctl -n <number-of-messages>` : show last n messages
+  - `journalctl -p <priority>` : show messages with specific prio
+  - `journalctl -p -u <systemd-unit>` : show messages from specific systemd unit eg. sshd-service
+  - `journalctl --since <time>` : show messages since time eg. today, 16:40...
+
+### rsyslog vs journald
+
+| Feature | journald | rsyslog |
+|---------|----------|---------|
+| Part of `systemd` | Yes | No |
+| Structured logging | Yes | No |
+| Indexing logs for fast search | Yes | No |
+| Access control | Yes | No |
+| Signed messages | Yes | No |
+| Handles logs from services started by `systemd` | Yes | No |
+| Handles logs from the earliest boot process messages | Yes | No |
+| Collects logs from many sources | No | Yes |
+| Handles logs from file sources | No | Yes |
+| Reads from and writes to the journal | No | Yes |
+| Handles a large volume of logs | No | Yes |
+
+### Maintain accurate time
+- System time synchronization is critical for log file analysis across multiple systems
+- `timedatectl` : overview of the current time-related system settings (eg. current time, time zone, NTP synchronization)
+  - `timedatectl list-timezones`
+  - `timedatectl set-timezone <timezone>`
+  - `timedatectl set-time <time>`
+  - `timedatectl set-ntp [false|true]`
+- **chronyd** service
+  - tracks the usually inaccurate local Real-Time Clock (RTC) by synchronizing it to the configured NTP server
+  - */etc/chrony.conf* contains settings about NTP server and more
+
+## Archive and Transfer Files
+- **tar** utility
+  - common command to create, manage, and extract archives
+  - create archive: `tar -c [-f ARCHIVE] [OPTIONS] [FILE...]`
+  - extract archive `tar -x [-f ARCHIVE] [OPTIONS] [MEMBER...]`
+  - list archive contents `tar -t [-f ARCHIVE] [OPTIONS] [MEMBER...]`
+  - useful options
+    - `-a` or `--auto-compress` : Use the archive's suffix to determine the algorithm to use
+    - `--selinux` : Enable SELinux context support, and store SELinux file contexts
+  - example command
+    - `tar -ca --selinux -f archive.tar.gz *.md rh134/`
+    - `tar -x -f archive.tar.gz`
+- **sftp** (Secure File Transfer Protocol)
+  - part of OpenSSH
+  - secure authentication and encrypted data transfer to and from the SSH server
+  - open interactive sftp shell: `sftp remoteuser@remotehost` (then use `help` to list available commands)
+  - fetch a remote file: `sftp remoteuser@remotehost:/home/remoteuser/remotefile`
+- **scp** (Secure Copy)
+  - copies files from a remote system to the local system (or vice versa)
+  - NOT SEECURE anymore (use rsync instead)
+- **rsync**
+  - standard for secure copy
+  - minimizes copied data by synchronizing only the changed portions
+  - pull from remote host: `rsync [OPTION...] [USER@]HOST:SRC... [DEST]`
+  - push to remote host `rsync [OPTION...] [USER@]HOST:SRC... [DEST]`
+  - `rsync` options
+
+    | Option | Description |
+    |---|---|
+    | -a | preserve most file characteristics (equv. to -rlptgoD) |
+    | -n | dry run (only show changes that WOULD be made) |
+    | -X | preserve SELinux file contexts |
+    | -A | preserve ACLs |
+    | -i | output a change-summary for all updates |
+    | -v | verbose output |
+  
+## Tune System Performance
+- **tuned** daemon applies tuning adjustments both statically and dynamically by using tuning profiles
+  - config in */lib/tuned/PROFILENAME/tuned.conf*
+  - show current-profile: `tuned-adm profile_info`
+  - change profile: `tuned-adm profile balanced`
+  - get profile recommendation: `tuned-adm recommend`
+- **nice value**
+  - determines a process' priority (higher nice value -> lower priority)
+  - ranges from -20 to 20
+  - privileged user can **decrease** the nice value of a process
+  - unprivileged users can only **increase** the nice value
+  - start process with user defined nice value: `nice -n 15 COMMAND`
+  - change nice value of a process: `$ renice -n 19 PID`
+  
+
+## Manage SELinux Security
+- Protect and manage server security by using SELinux.
+  - managed trough semanage command and */etc/sysconfig/selinux* config file
+- SELinux can be set to two enforcement modes **Enforcing** or **Permissive**
+  - `getenforce`
+  - `setenforce [ Enforcing | Permissive | 1 | 0 ]`
+  - set persistently in */etc/selinux/config*
+- SELinux can change the **fcontext** of a file
+  - show file context: `ls -Z FILE`
+  - change file context: `semanage fcontext [-a|-m] -t FILECONTEXT FILE(S) && restorecon -Rv FILE(S)`
+  - commonly used with pirate `semanage fcontext -a -t httpd_sys_content_t '/virtual(/.*)?'`
+- SELinux can set **booleans**
+  - show all booleans: `semanage boolean -l` or `getsebool -a`
+  - search for boolean: `semanage boolean -l | grep NAME` or `getsebool NAME`
+  - set boolean: `setsebool NAME [on|off]`
+- SELinux can link **ports** and services that are allowed to use them
+  - list all port definitions: `semanage port -l`
+  - add port definition (example): `semanage port -a -t http_port_t -p tcp 81`
+- **Troubleshooting**
+  - logs in */var/log/audit/audit.log*
+  - use `ausearch` to query audit logs
+
+
+## Manage Basic Storage
+- Create and manage storage devices, partitions, file systems, and swap spaces from the command line.
+  - for normal file system
+    - `parted *device_name* mklabel msdos`
+    - `parted *device_name* mkpart primary *file-system-type* *start* *end*`
+    - `echo "*device_name or UUID=..* *mountpoint* *filesystem* defaults 0 0" >> /etc/fstab`
+    - `mount *device_name*`
+  - for SWAP
+    - `parted *device_name* mklabel msdos`
+    - `parted *device_name* mkpart primary linux-swap *start* *end*`
+    - `mkswap *partition_name*`
+    - `echo "*device_name or UUID=..* swap swap defaults 0 0" >> /etc/fstab`
+    - `swapon -a`
+`
+## Manage Storage Stack
+- Create and manage **logical volumes** that contain file systems or swap spaces from the command line.
+    - Initialize Devices/Partitions
+        - if you're using partitions make sure you set them up properly with parted mkpart and udevadm settle
+        - to make sure devices/partitions are unmounted check lsblk --fs
+        - initialize them as PVs with `pvcreate /dev/sdb1 /dev/vdc /dev/sdc...` (you get the point)
+    - Create Volume Group
+        - use `vgcreate *groupname* /dev/sbd1 /dev/vdc...` to create group
+        - use `vgdisplay` to show group stats
+        - use `vgextend *groupname* /dev/vdb3` to add further PVs to the VG
+    - Create Logical Volume and Filesystem
+        - use `lvcreate -n *volume-name* -L *volume-size* *groupname*` to create a new LG in the group
+        - use `lvextend/lvdisplay` to extend the volume or show stats
+        - to create a filesystem on the LV use `mkfs -t xfs /dev/*groupname*/*volume-name*`
+        - mount filesystem with `echo '/dev/*groupname*/*voulme-name* *mountpoint* xfs defaults 0 0' >> /etc/fstab && mount *mountpoint*`
+        - after growing a LV remember to grow the filesystem with commands such as `xfs_growfs *mountpoint*`
+- Describe logical volume manager components and concepts, and implement LVM storage and display LVM component information.
+- Analyze the multiple storage components that make up the layers of the storage stack.
+
+## Access Network-Attached Storage
+- Access network-attached storage with the NFS protocol.
+    - `echo "servera:/share/stuff /mnt/stuff nfs defaults 0 0" >> /etc/fstab`
+    - `mount -a`
+- Describe the benefits of using the automounter, and automount NFS exports by using direct and indirect maps
+    - create master map file to /etc/auto.master.d. This file identifies the base directory for mount points and the mapping file to create the automounts.
+        - eg. /shares /etc/auto.indirect (indirect)
+        - or  /-      /etc/auto.direct   (direct)
+    - create mapping file
+        - eg. work      -rw,sync serverb:/shares/work  (indirect)
+        - or  /mnt/docs -rw,sync serverb:/shares/docs  (direct)
+    - wildcards to share all subdirectories and use the same name on client system (only with indirect mapping)
+        - eg. * -rw,sync serverb:/shares/&
+    - after making changes restart autofs with $ systemctl restart autofs.service
+
+## Control the Boot Process
+- Manage the boot process to control offered services and to troubleshoot and repair problems.
+    - Enter emergency mode by appending systemd.unit=emergency.target to linux kernel line in boot parameters
+    - login as root and remount filesystem in r/w mode $  mount -o remount,rw / && mount -a
+    - often there can be issues in the /etc/fstab file $ vim /etc/fstab && systemctl daemon-reload
+- Describe the Red Hat Enterprise Linux boot process, set the default target when booting, and boot a system to a non-default target.
+    - edit boot params and set systemd.unit=multi-user.target for example
+    - once booted the default can be changed with $ systemctl set-default
+- Log in to a system and change the root password when the current root password is lost.
+- Manually repair file-system configuration or corruption issues that stop the boot process.
+
+## Manage Network Security
+- Control network connections to services with the system firewall and SELinux rules.
+- Accept or reject network connections to system services with firewalld rules.
+- Verify that network ports have the correct SELinux type for services to bind to them.
+- **firwalld** = firewall daemon
+  - mapping from zone to service/port/interface...
+    - zone defines the behaviour of the firewall eg. drop packets, block requests, allow access etc.
+  - configure firewalld through `firewall-cmd`
+  - `firewall-cmd --reload` : Reload firewall rules and keep state information
+  - `firewall-cmd blablabla --permanent` : set options permanently
+  - `firewall-cmd --get-default-zone`
+  - `firewall-cmd --set-default-zone ZONE` : 
+  - `firewall-cmd --list-all` : show info for currently active zone(s)
+  - `firewall-cmd --new-zone=ZONE` : add new zone
+  - `firewall-cmd  --add-[service|source|port|interface]` : add service to current zone
+- **SELinux** Port Labeling
+  - SELinux assigns a context/label to all files, devices, directories, ports... (here generalized as units)
+  - a label/context defines the access control behaviour of a unit
+  - also manages booleans like *ssh_keysign* (allow ssh to keysign)
+  - enforcement status
+    - enforcing = SELinux security policy is enforced.
+    - permissive = SELinux security policy is not enforced but logs the warnings (i.e. the action is allowed to proceed).
+  - managed through `semanage [fcontext|port|booleans|module...] [arguments]`
+
 
 ## Important Files
 
