@@ -457,6 +457,7 @@ authpriv.* /var/log/secure
   - show file context: `ls -Z FILE`
   - change file context: `semanage fcontext [-a|-m] -t FILECONTEXT FILE(S) && restorecon -Rv FILE(S)`
   - commonly used with pirate `semanage fcontext -a -t httpd_sys_content_t '/virtual(/.*)?'`
+  - list all fcontext options: `seinfo -t`
 - SELinux can set **booleans**
   - show all booleans: `semanage boolean -l` or `getsebool -a`
   - search for boolean: `semanage boolean -l | grep NAME` or `getsebool NAME`
@@ -516,6 +517,11 @@ authpriv.* /var/log/secure
     - wildcards to share all subdirectories and use the same name on client system (only with indirect mapping)
         - eg. * -rw,sync serverb:/shares/&
     - after making changes restart autofs with $ systemctl restart autofs.service
+- Provide a shared folder on the network
+  - ensure nfs-server is installed: `dnf install nfs-utils`
+  - create entry in */etc/exports* (see exports(5) for details): `echo "/srv/folder   *(ro,sync,no_subtree_check)" >> /etc/exports`
+  - reload nfs-server: `systemctl reload nfs-server || systemctl start nfs-server`
+  - 
 
 ## Control the Boot Process
 - Manage the boot process to control offered services and to troubleshoot and repair problems.
