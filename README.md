@@ -39,6 +39,7 @@ This repository contains notes on the most common tasks on Linux systems and is 
     - [Storage](#storage)
     - [Other](#other)
     - [Webserver](#webserver)
+    - [Binaries](#binaries)
 
 
 ## Manage Files from the Command Line
@@ -583,6 +584,7 @@ This section summarizes the most important configuration and log files on Linux 
 | /etc/gshadow   | Secure system group information        | gshadow(5)    | root  | no       |
 | /etc/sudo.conf | Configure the sudo front end           | sudo.conf(5)  | root  | no       |
 | /etc/sudoers   | users and groups allowed to sudo & more| sudoers(5)    | root  | no       |
+| /etc/login.defs| default values fort `useradd`          | login.defs(5) | root  | yes      |
 
 ### SSH
 | File | Description | Documentation |
@@ -610,6 +612,7 @@ This section summarizes the most important configuration and log files on Linux 
 | File | Description |
 |---|---|
 | /etc/fstab | devices and their persistent mount points |
+| /etc/exports | files exported as nfs shares |
 
 ### Other
 | File | Description |
@@ -627,3 +630,10 @@ This section summarizes the most important configuration and log files on Linux 
 |---|---|
 | /usr/share/nginx/html/ /usr/share/nginx/www /var/www/html | Possible directories for nginx public web content |
 | var/www/ | Apache default directory |
+
+### Binaries
+| Directory | Description |
+|---|---|
+|/bin | essential system binaries |
+|/usr/bin | non-essential system binaries |
+|/usr/sbin | non-essential system binaries that require root privileges |

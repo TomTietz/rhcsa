@@ -9,33 +9,26 @@ Create a cron job running as ***root***, starting at ***11PM every day*** and wr
 <br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
 <br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
 
-### Answer:
-
-* Command use to gather system statistics is called **sar** and may not be installed on the system. So first what we have to do is install it and then enable the service:
+### Answer (RHEL 9)
 
 ```
-yum install sysstat
-systemctl enable sysstat
-systemctl start sysstat
+su -              # or sudo -i
+crontab -l        # check for existing crontab tasks 
+crontab -e        # edit current crontab
+
+## Add the following line
+0 23 * * *            /usr/bin/sar -A > /var/log/consumption.log
+# crontab entries should follow the following syntax
+# field          allowed values
+# -----          --------------
+# minute         0-59
+# hour           0-23
+# day of month   1-31
+# month          1-12 (or names, see below)
+# day of week    0-7 (0 or 7 is Sunday, or use names)
+# conmmand       whatever
 ```
 
-
-* As usual it is wise to check what we have already in the system. To see **crontab** we just issue:
-
-```
-crontab -l
-```
-
-if there are no jobs scheduled then we get information about it.
-
-
-* edit crontab:
-
-```
-crontab -e
-# and then editing the file by adding
-0 23 * * * /usr/bin/sar -A > /var/log/consumption.log
-```
 
 ### Additional comment:
 

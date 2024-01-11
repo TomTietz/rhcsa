@@ -1,5 +1,7 @@
 # Practice Questions
 
-This questions were written by GitHub user [chlebik](https://github.com/chlebik) and originally published [here](https://github.com/chlebik/rhcsa-practice-questions/tree/master/questions)
+These questions were forked [chlebik](https://github.com/chlebik) and originally published [here](https://github.com/chlebik/rhcsa-practice-questions/tree/master/questions)
 
-PLEASE NOTE: This questions were written for RHEL 7. Some exact solutions might therefore be inaccurate or deprecated under current versions.
+All answers were written by the authors of this repository and tested on RHEL 9.
+
+PLEASE NOTE: The original questions/answers were written for RHEL 7 and RHEL8 and might not be relevant or accurate for newer versions. 

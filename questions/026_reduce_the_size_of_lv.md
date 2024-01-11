@@ -9,30 +9,9 @@ Reduce the size of existing **logical volume** by **400MB**.
 <br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
 <br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
 
-### Answer:
+### Answer (RHEL 9)
 
-* First we list existing logical volumes:
-
-```
-lvdisplay   
-```
-
-* We should get the **/dev...*** link to our logical volume. That is step one. In order to shrink the existing size of
-logical volume it requires unmounting it to perform this operation:
-
-```
-umount /MOUNT_POINT
-```
-
-* It came the time to resize our logical volume:
-
-```
-lvreduce -L -400M /dev/LINK_TO_LVM
-```
-
-* Now we just remount the volume again and check if everything as it should be:
-
-```
-mount -a
-lvdisplay
-```
+1. Show all extisting LVs `lvdisplay`
+2. Unmount volume `unmount /MOUNTPOINT`
+3. Shrink LV and resize file system accordingly `lvreduce -L -400MB /dev/datacontainer/datacopy --resizefs`
+4. Remount volume `mount -a`

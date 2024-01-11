@@ -12,48 +12,41 @@ Ensure the web server is available across reboots.
 <br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
 <br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
 
-### Answer:
+### Answer (RHEL 9)
 
-* Switch to the account of user that will be running the container.
-It is assumed that user named `user` exists on the system
+1. Switch to user account the container is supposed to be run as `su - USER`
+2. Authenticate if you have a private registry with images to work with. To let anyone do the exercise public repository is used through the rest of step
 ```
-# su - user
+podman login
 ```
-* Authenticate if you have a private registry with images to work with. 
-To let anyone do the exercise public repository is used through the rest of steps
-``` 
-$ podman login 
+3. Pull webserver from repository
 ```
-* Create the container
+podman image list                              # list local images
+podman [image] search nginx                    # search repositories for images
+podman [image] pull docker.io/library/nginx    # pull image from repo
 ```
-$ podman create -d -v /home/user/webfiles:/usr/local/apache2/htdocs -p 8080:80 --name user_httpd docker.io/library/httpd
+4. Run webserver
 ```
-* Generate service configuration
-```
-$ sudo podman generate systemd user_httpd > ~/.config/systemd/user/user_httpd.service
-```
-* Enable and start the service. You need to be logged in as the user, switching to it is not enough
-```
-$ systemctl --user enable --now user_httpd.service
-```
-* Enable linger, otherwise start of the container would happen when the user logs in
-```
-$ loginctl enable-linger
-```
+# create server container
+podman create -v /home/USER/webfiles:/usr/share/nginx/html \
+-p 8080:80 --name user_nginx docker.io/library/nginx
 
-* Add SELinux permissions to the catalog
+podman start user_nginx                 # start server
+podman ps                               # check server status
 ```
-# semanage fcontext -at container_file_t "/home/user/webfiles(/.*)?"
-# restorecon -vR /home/user/webfiles
+5. Create systemd service from container [DEPRECATED]
 ```
-Alternatively, while creating the container you could configure volume and let podman take care of setting the context up for you.
-Syntax looks as follows:
+podman generate systemd user_nginx > ~/.config/systemd/USER/user_nginx.service   # create service from container
+systemctl --user enable --now user_nginx.service                                 # start and enable service
+loginctl enable-linger                                                           # ensuire user logs in automatically at boot
 ```
-$ podman run -v <src>:<dst>:z <image>
+6. Configure firewalld and SELinux to allow webserver/container access  
+```
+firewall-cmd --permanent --add-service http --add-port=8080/tcp           # add firewall rule
+firewall-cmd --reload                                                     # reload firewall
+semanage fcontext --add -t container_file_t "/home/USER/webfiles(/.*)?"   # allow container access to files
+restorecon -vR /home/user/webfiles                                        # reload file contexts
 ```
 
-* Add port to the firewall
-```
-# firewall-cmd --add-port=8080/tcp --permanent
-# firewall-cmd --reload
-```
+## Additioonal comment
+`podman generate systemd` is now deprecated but still part of the course material which is why it's used here. The correct way to create a systemd container is a Quadlet. For more details see quadlet(5) or podman-systemd.unit(5)

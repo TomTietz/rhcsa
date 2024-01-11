@@ -13,29 +13,18 @@ All other users (current or future) should have the ability to read this file.
 <br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
 <br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
 
-### Answer:
+### Answer (RHEL 9)
 
-* We start with copying the file with permissions it already have
-
-```
-cp /etc/fstab /var/tmp
-ls -al /var/tmp
-```
-
-* We have to create users mentioned in question (if we do not have them already): 
-
-```
-useradd andrew
-useradd susan
-```
-
-* Setting special access rights to files/directories is achieved via **FACL**. The commands are:
-
-```
-setfacl -m u:andrew:rw- /var/tmp/fstab
-setfacl -m u:susan:--- /var/tmp/fstab
-# in order to check if everything is ok
-getfacl /var/tmp/fstab
-```
-
-* By default all other users can read this file so this requirement is already met.
+1. Create copy of */etc/fstab* `cp /etc/fstab /var/tmp/`
+2. Ensure root is the onwer and group of the copy `chown root:root /var/tmp/fstab`
+3. Set permisison bits accordingly `chmod 664 /var/tmp/fstab`
+4. Add ACL entries
+    ```
+    setfact -m u:andrew:rw /var/tmp/fstab
+    setfacl -m u:susan:- /var/tmp/fstab
+    ```
+5. Check access
+    ```
+    ls -l /var/tmp/fstab
+    getfacl /var/tmp/fstab
+    ```

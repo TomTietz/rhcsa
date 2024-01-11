@@ -12,32 +12,19 @@ and log into the system.
 <br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
 <br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
 
-### Answer:
+### Answer (RHEL9)
 
-* During boot time when GRUB loader screen is presented press *e* key. That will open an editor with current kernel boot options.
-* Find the line starting with ***linux16***. At the end of that line add **rd.break** and press ***Ctrl-x*** to restart the 
-system with new option.
-* ***For RHCSA8 only*** - You should also remove existing parameters **ro** and **crashkernel=...**.
-* What this actually does is taking You to the target right at the end of the boot stage - before root filesystem is mounted (on /).
-* Type ***mount -o remount,rw /sysroot***. This actually gets You RW access to the filesystem. ***/sysroot*** folder is Your 
-normal ***/*** hierarchy.
-* Type ***chroot /sysroot*** to make this folder new root directory.
-* Now it is time to change the root password (that is what we are here for right?) - type ***passwd*** and provide new
-password.
-* In order to finish the task **SELinux** must be taken care of. If not, contents of ***/etc/shadow*** will be messed up. There are
-two commands to be provided:
-```
- load_policy -i 
- chcon -t shadow_t /etc/shadow
-```
-
-* Alternately, create /.autorelabel which will force a relabel on the next boot (and automatically reboot again to apply the fix):
-```
-touch /.autorelabel
-```
-
-* Type ***exit*** twice (with pressing ENTER after each one)
-* Now You can log into the system using new password
+1. Interrupt boot process with F2 or sth
+2. Press e to edit startup attributes
+3. Append rd.break at the line that starts with linux...
+4. Press Ctrl+x to boot with the changes.
+5. Press Enter to perform maintenance when prompted
+6. Remount the file system `mount -o remount,rw /sysroot`
+7. Switch into a chroot jail, where /sysroot is treated as the root of the file-system tree `chroot /sysroot`
+8. Set root passwd `passwd root`
+9. Ensure all unlabeled files, including /etc/shadow at this point, get relabeled during root `touch /.autorelabel`
+10. Type ***exit*** twice (with pressing ENTER after each one)
+11. Now You can log into the system using new password
 
 
 ### Additional comment:

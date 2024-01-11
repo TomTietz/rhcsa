@@ -10,42 +10,16 @@ Interface:    eth0
 <br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
 <br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
 
-### Answer:
+### Answer (RHEL 9)
 
-* We use the network manager CLI (nmcli) to perform this action.
-* Issue following command (as one liner) to set the new connection data (we assume type is ethernet connection as used interface is called ***eth0***):
-
-```
-nmcli conn add con-name MY_CONNECTION ifname eth0 type ethernet
-ip4.addresses SOME.IP.TO.BE.USED/mask
-ipv4.gateway SOME.GATEWAY.TO.BE.USED
-ipv4.dns SOME.DNS.TO.BE.USED  
-```
-
-* That command creates a new connection for a specific interface - However, if we want to modify an exisiting connection issue the following command.
-
-*Note: Notice [+] in the command - if used with + sign provided DNS will be added to the list of DNS being used. If we omit + sign the whole list will be replaced by 
-provided value.*
-
-```
-nmcli con modify MY_CONNECTION [+]ipv4.dns SOME.DNS.TO.BE.USED  
-nmcli con mod MY_CONNECTION ipv4.ignore-auto-dns yes       # to disable DHCP DNS
-```
-
-* At the final stage it is wise to start this connection:
-
-```
-nmcli con show --active      # to check if the connection is not up 
-nmcli con up MY_CONNECTION
-nmcli con show --active      # to check if the connection is up
-```
-
-* If asked to automatically start the new connection on system reboot:
-
-```
-nmcli con mod OLD_ACTIVE_CONNECTION connection.autoconnect no     # disable the old connection from starting on reboot 
-nmcli con up MY_CONNECTION connection.autoconnect yes # automatically switch to new connection on reboot 
-```
+1. Find out the name of the inteface for the connection `ip a s`
+2. Create new connection using nmcli `nmcli connection add con-name some-name type ethernet ifname eno1 ipv4.method manual ipv4.addresses some.ip.to.be.used/mask ipv4.gateway some.gateway.to.be.used ipv4.dns some.dns.to.be.used `
+3. Check iof connection was successfully added `nmcli c s`
+4. Start up connection `nmcli connection up some-name`
+5. Check if connection is up `nmcli con show --active`
+6. To make things persistent:
+   1. isable the old connection from starting on reboot `nmcli con mod old-connection connection.autoconnect no`
+   2. automatically switch to new connection on reboot `nmcli con up MY_CONNECTION connection.autoconnect yes`
   
 ### Additional comment:
 It is possible to edit existing connection using **nmtui** tool which can be easier. 

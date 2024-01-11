@@ -1,7 +1,5 @@
 #  Manage layered storage
 
-PURE RHCSA 8 QUESTION!
-
 ### Question:
 Create pool and filesystem for thin provisioning and snapshots.
 
@@ -11,14 +9,35 @@ Create pool and filesystem for thin provisioning and snapshots.
 <br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
 <br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
 
-### Answer:
+### Answer (RHEL 9)
 
-* Actually, the question stated above is not in fact a question. The problem with **layered storage** in **RHEL 8** is that 
-there is still not that much information about it available online.
+1. Ensure stratis is installed and running
+    ```
+    dnf install -y stratis-cli stratisd
+    systemctl enable --now stratisd
+    ```
+2. Check for available block devices `lsblk`
+3. Create new stratispool and add devices
+    ```
+    stratis pool create pool1 /dev/sda1 /dev/sdb
+    stratis pool add-data pool1 /dev/vdc
+    ```
+4. Create filesystem `stratis filesystem create pool1 fs1`
+5. Check if successful
+    ```
+    stratis pool list
+    stratis blockdev list pool1
+    stratis filesystem list
+    ```
+6. Mount file system
+```
+echo "UUID=$(blkid -o value /dev/stratis/pool1/fs1 | head -1) /mnt/example xfs defaults,x-systemd.requires=stratisd.service 0 0" >> etc/fstab
+mount -av
+```
 
-* **Stratis** is a tool (written in Rust language) that is supposed to be used in **RHEL 8** for managing layered storage.
-How to fully create **pool** from block devices and then **filesystems** is very well explained in <a href="https://stratis-storage.github.io/howto/">Stratis How-to</a> - so I won't 
-be rewriting this. 
-
-* In my opinion, this objective was introduced to actually raise awareness of this tool. And for the time being, I do not expect heavy-metal-questions
- about it.
+### BEWARE
+- If you do not include the **x-systemd.requires=stratisd.service** mount
+option in the /etc/fstab file for each Stratis file system, then the machine fails to
+start correctly, and aborts to emergency.target the next time that you reboot it.
+- `df` command reports that any mounted Stratis-managed XFS file system
+is 1 TiB, regardless of the current allocation

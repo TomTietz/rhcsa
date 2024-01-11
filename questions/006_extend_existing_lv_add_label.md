@@ -9,26 +9,28 @@ Extend the existing ***xfs*** file system to a total size of ***200MB*** and add
 <br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
 <br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
 
-### Answer:
+### Answer (RHEL9)
 
-* Before any kind of operations on ***LVM*** it is good to know what we actually have in the system. The proper command to list all
-devices we can use is in order **pvs**, **vgs** and **lvs**. It shows all physical storages and devices, volume groups and logical volumes.
+1. Get overview of devices, partituions, PVs, VGs, and LVs
+    ```
+    lsblk             # show devices and partitions
+    pvdisplay         # show physical volumes included in LVM 
+    vgdisplay         # show volume groups included in LVM 
+    lvdisplay         # show logical volumes included in LVM 
+    ```
+2. Extent an LV (`-r` extends the file system too)
+    ```
+    lvextend -r --size 200MB LV    # extend to 200MB
+    lvextend -r --size +200KiB LV  # inccrease size by 200KiB
+    lvextend -r LV PV   # extend to the full available size of physical volume PV
+    ```
+3. Relabel file system
+    ```
+    umount /LINK/TO/FILESYSTEM/MOUNT/POINT
+    xfs_admin -L "myFS" /dev/VOLUME_GROUP/LOGICAL_VOLUME
+    mount /LINK/TO/FILESYSTEM/MOUNT/POINT
+    ```
 
-* Exam objectives require extending of logical partitions. The tricky part here is to remember that **XFS** filesystem (which is the default setting for RHEL)
-does not allow downsizing of **XFS** partition (the only possibility is to grow that volume). So please be careful when reading LVM related questions
-during the exam.
-  
-* When question is presented in a form we have in this task we can assume that the logical volume is less than given **200MB** we have to set. Then we can use: 
 
-```
-# notice -r flag which indicates not only to resize logical volume but also filesystem on it
-lvextend –size 200M -r /dev/VOLUME_GROUP/LOGICAL_VOLUME
-```
-
-* In order to give a logical volume a label we have to unmount it first, set a label and then mount it again:
- 
-```
-# umount /LINK/TO/FILESYSTEM/MOUNT/POINT
-# xfs_admin -L "myFS" /dev/VOLUME_GROUP/LOGICAL_VOLUME
-# mount /LINK/TO/FILESYSTEM/MOUNT/POINT
-```
+### Additional comment
+In case you forgot to specify the `-r` option you can grow the filesystem with `xfs_growfs [ mount-point | block-device ]`

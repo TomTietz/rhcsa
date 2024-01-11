@@ -9,22 +9,16 @@ Change hostname of the system
 <br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
 <br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
 
-### Answer:
+### Answer (RHEL 9)
 
-* Actually there are numerous ways to achieve that.
-* The simplest one is just to use ***nmtui*** and choose proper item in the menu
-* You can manually edit **/etc/hostname** (not recommended)
-* It is possible to use specific command - **hostnamectl**:
- 
-```
-hostnamectl set-hostname SOME_NAME
-```
-
-* It is possible to use **nmcli** for this with command:
- 
-```
-nmcli general hostname SOME_NAME
-```
+1. Show current hostname `hostname`
+2. countless methods of changing the current hostname
+    ```
+    hostname NEW_HOSTNAME                  # not persistent
+    echo NEW_HOSTNAME > /etc/hostname      # not recommended
+    hostnamectl hostname NEW_HOSTNAME
+    nmcli general hostname NEW_HOSTNAME
+    ```
  
 
 

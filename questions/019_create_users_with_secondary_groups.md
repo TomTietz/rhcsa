@@ -12,38 +12,24 @@
 <br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
 <br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
 
-### Answer:
+### Answer (RHEL 9)
 
-* The answer is pretty straightforward therefore I will provide just the commands: 
-
-```
-groupadd sysgrp
-
-useradd andrew
-useradd susan
-useradd sarah -s /sbin/nologin
-
-passwd andrew  # provide password for andrew
-passwd susan   # provide password for susan
-passwd sarah   # provide password for sarah
-
-usermod -aG sysgrp andrew
-usermod -aG sysgrp susan
-```
-
-* To make sure what groups the users belong to here are the commands:
-
-```
-id andrew
-id susan
-id sarah
-
-# or for one group
-groupmems -g sysgrp -l 
-```
-
-* You can try to login as **sarah** but it should not work:
-
-```
-su - sarah
-```
+1. Create group `groupadd sysgrp`
+2. Create the users
+    ```
+    useradd -G sysgrp andrew
+    useradd -G sysgrp susan
+    useradd -s /user/sbin/nologin sarah
+    ```
+3. Set password for all users (safer than the -p option)
+    ```
+    passwd andrew
+    passwd susan
+    passwd sarah
+    ```
+4. Check if they are set correctly
+    ```
+    id andrew
+    id susan
+    id sarah
+    ```

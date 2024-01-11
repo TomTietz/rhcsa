@@ -11,38 +11,18 @@ Install the kernel from the source http://some.link/to/kernel. The following cri
 <br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
 <br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
 
-### Answer:
+### Answer (RHEL 9)
 
-* In order to get new kernel from specified link You should add this link as a repository that can be seen by **YUM**.
-The procedure for adding a repository was described in question **016** so I won't be repeating myself here.
-
-* After the repo is added, enabled and visible by **YUM** the command is: 
-
-```
-yum install kernel  
-```
-
-* Mentioned criteria are actually not a problem as this is the default behaviour - the kernel is not itself updated but
-new version is installed. By default system saves previous **4** versions of kernel on the disc.
-
-* To make sure what is the default kernel being loaded by boot-loader we use a command **grubby**:
-
-```
-grubby --info=ALL
-```
-
-that will list all installed kernels (the one with index **0** will be loaded by default). If it is not the kernel You just
-installed You can change it by issuing:
-
-```
-grubby --set-default-index INDEX_OF_NEW_KERNEL
-```
-
-and reboot the system to see if the changes apply
-
-
-
-
-
-
-
+1. Install a repository providing the new kernel as described in the answer for Question 016
+2. Install new kernel `dnf install -y kernel`
+3. Check if kernel can be found under */boot* `ls -l /boot`
+   - ususally kernels are stored there
+   - if not find the kernel and move it to the */boot* directory
+4. The kernel should be listed when running `grubby --info=ALL`
+    - otherwise add kernel to grub `grubby --add-kernel=/boot/kernel`
+5. Set default kernel
+    ```
+    grubby --set-default=/boot/kernel     # by path
+    grubby --set-default-index KERNEL_ID  # by index
+    ```
+6. Reboot system `systemctl reboot`

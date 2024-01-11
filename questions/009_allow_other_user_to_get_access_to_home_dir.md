@@ -11,19 +11,13 @@ Allow ***davis*** (and only ***davis***) to get full access to ***john's*** home
 <br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
 <br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
 
-### Answer:
+### Answer (RHEL9)
 
-* Usually the system operates only on file/folder user owner and group owner. The default settings for users is that the files and
-folders created by that user are given ownership (user and group) of the creating user. 
+1. Change owner of /home/john directory `chown -R davis:davis /home/john`
+2. Change permisisons on directory `chmod -R 700 /home/john` 
 
-* This question is somehow problematic to me. From the way it is constructed it seems that simple:
 
-```
-chown -R davis:davis /home/john
-chmod -R 700 /home/john 
-```
-
-should suffice. 
+### Additional comment:
 
 * In order to extend the possibility to add additional users to be able to operate on folders and files there is a concept of
 **ACL**. They are set using the command **setfacl**.
@@ -47,8 +41,6 @@ setfacl -R -m u:davis:rwx /home/john
 ```
 setfacl -R -m u:davis:rwx,d:u:davis:rwx /home/john
 ```
-
-### Additional comment:
 
 **ACLs** are indicated by the **'+'** (plus) sign at the end of the owning folder (this is the listing from ***/home*** folder):
 ```

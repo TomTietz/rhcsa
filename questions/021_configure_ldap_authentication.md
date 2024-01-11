@@ -17,36 +17,6 @@ According to CertDepot, [Objectives around Virtualization and LDAP configuration
 <br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
 <br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
 
-### Answer:
+### Answer (RHEL 9)
 
-* At the very beginning make sure You have **auth** related tools installed on the system, followed by **sssd**:
-
-```
-yum install -y auth* sssd sssd-client
-```
-
-* Usually I provide solutions with command line however with setting up LDAP it is a long list of commands. Given that 
-during **RHCSA** exam You will be given GUI to work with - the easiest way is just to use graphical tool designed for 
-LDAP config:
-
-```
-authconfig-gtk
-```
-
-and You just fill in the blanks (remember that LDAP server address needs **ldap://** prefix instead of **http://**).
-
-* After configuring LDAP to connect to we have to make sure that services that are responsible for handling the communication with 
-LDAP server. So we should enable and start **SSSD**:
-
-```
-systemctl enable sssd
-systemctl start sssd
-```
-
-
-* When You set up everything just issue:
-
-```
-getent passwd USERNAME
-```
-and in the output You should be given information about the user.
+LDAP is no longer part of the exam objectives. This question is therefore skipped. Better focus on the relevant parts.

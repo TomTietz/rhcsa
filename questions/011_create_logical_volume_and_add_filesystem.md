@@ -9,43 +9,24 @@ Create a ***xfs*** file system on a new logical volume of ***100MB*** called ***
 <br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
 <br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
 
-### Answer:
+### Answer (RHEL 9)
 
-* Before any kind of operations on ***LVM*** it is good to know what we actually have in the system. The proper command to list all
-devices we can use is in order **pvs**, **vgs** and **lvs**. It shows all physical storages and devices, volume groups and logical volumes.
+1. Check for existing VG and create if necessary
+    ```
+    vgdisplay
 
-
-* First we create a logical volume that is mentioned in the question and we create files system on it:
-
-```
-lvcreate –size 100M –name lv_xfs /dev/vg
-# we can also use mkfs -type xfs /dev/vg/lv_xfs 
-mkfs.xfs /dev/vg/lv_xfs
-```
-
-* After that we have to perform all the steps for permanent mounting, starting with creation of mount point:
-
-```
-mkdir /xfs
-```
-
-
-* Then we edit **fstab** file in order to make mounting permanent:   
-
-```
-blkid | grep lv_xfs >> /etc/fstab
-
-OR 
-
-vi /etc/fstab
-UUID=... /xfs xfs defaults 1 2
-```
-
-* Finally we remount the discs by reloading **fstab** configuration using:
-  
-```
-mount -a
-```
+    # if no Vg exists
+    pvcreate /dev/bla /dev/blub
+    vgcreate VGNAME /dev/bla /dev/blub
+    ```
+2. Create new logical volume `lvcreate -L 100MB --name lv_xfs /dev/VGNAME`
+3. Create the XFS filesystem `mkfs.xfs /dev/VGNAME/lv_xfs`
+4. Mount file system persistently
+    ```
+    mkdir /xfs
+    echo "/dev/VGNAME/lv_xfs /xfs xfs defualts 0 0" >> /etc/fstab
+    mount -v /xfs
+    ```
 
 
 ### Additional comment:

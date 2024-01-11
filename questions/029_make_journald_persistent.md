@@ -11,18 +11,16 @@ Configure **journald** to persist between reboots
 <br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
 <br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
 
-### Answer:
+### Answer (RHEL)
 
-* Usually **journald** does not preserve logs between reboots which can sometime makes troubleshooting pretty hard. 
- Enabling it to be persistent is pretty straightforward:
+1. Open the journald config `vim /etc/systemd/journald.conf`
+2. Edit the Storage line like this
+    ```
+    Storage=persistent
+    ```
+3. Restart journald `systemctl restart systemd-journald.service`
+4. Data should now persistently be stored in *var/log/journald*
 
-```
-#edit the file /etc/systemd/journald.conf and change "#Storage=auto" to "Storage=persistent"
-systemctl restart systemd-journald.service
-```
 
-and that's all. After reboot all logs will still be there.
-### From `man journald.conf`:
-> (...)  
-> Storage= 
->> Controls where to store journal data. ... If "persistent", data will be stored preferably on disk, i.e. below the /var/log/journal hierarchy (which is created if needed), with a fallback to /run/log/journal (which is created if needed), during early boot and if the disk is not writable. "auto" behaves like "persistent" if the /var/log/journal directory exists, and "volatile" otherwise (the existence of the directory controls the storage mode)."
+## Additional comment
+Setting *Storage* to "auto" behaves like "persistent" if the /var/log/journal directory exists, and "volatile" otherwise (the existence of the directory controls the storage mode). Check ´man 5 journald` for more 
