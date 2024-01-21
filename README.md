@@ -1,6 +1,6 @@
 # RHCSA Exam Prep
 
-This repository is intended to optimally prepare you for the RHCSA exam including:
+This repository is intended to optimally prepare you for the RHCSA exam and includes:
     - [study notes](/notes/README.md)
     - [practice questions](/questions/README.md) (and answers)
     - [exam objectives](/objectives.md)
