@@ -17,6 +17,6 @@ Configure **autofs** to automount the home directories of LDAP users.
 <br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
 <br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
 
-### Answer (RHEL 9)#
+### Answer (RHEL 9)
 
 LDAP is no longer part of the exam objectives. This question is therefore skipped. Better focus on the relevant parts.
