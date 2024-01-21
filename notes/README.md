@@ -510,10 +510,18 @@ authpriv.* /var/log/secure
     - `echo "servera:/share/stuff /mnt/stuff nfs defaults 0 0" >> /etc/fstab`
     - `mount -a`
 - Describe the benefits of using the automounter, and automount NFS exports by using direct and indirect maps
-    - create master map file to /etc/auto.master.d. This file identifies the base directory for mount points and the mapping file to create the automounts.
+    - **Direct Mounts**
+      - map a single directory to a filesystem.
+      - can have local files that were in the directory before the mount happened show up as well as the mounted shares.
+      - tab completion is allowed for all directories3.
+    - **Indirect Mounts**
+      - mounts map a directory to one or more filesystems.
+      - block access to locally stored files as long as the mount is active3.
+      - tab completion is only allowed for the created directory3.
+    - create **master map file** to /etc/auto.master.d. This file identifies the base directory for mount points and the mapping file to create the automounts.
         - eg. /shares /etc/auto.indirect (indirect)
         - or  /-      /etc/auto.direct   (direct)
-    - create mapping file
+    - create **mapping file**
         - eg. work      -rw,sync serverb:/shares/work  (indirect)
         - or  /mnt/docs -rw,sync serverb:/shares/docs  (direct)
     - wildcards to share all subdirectories and use the same name on client system (only with indirect mapping)
@@ -523,7 +531,18 @@ authpriv.* /var/log/secure
   - ensure nfs-server is installed: `dnf install nfs-utils`
   - create entry in */etc/exports* (see exports(5) for details): `echo "/srv/folder   *(ro,sync,no_subtree_check)" >> /etc/exports`
   - reload nfs-server: `systemctl reload nfs-server || systemctl start nfs-server`
-  - 
+- Direct vs indirect Mounts
+  - Direct Mounts:
+      - map a single directory to a filesystem.
+      - can have local files that were in the directory before the mount happened show up as well as the mounted shares.
+      - tab completion is allowed for all directories3.
+    - Indirect Mounts
+      - mounts map a directory to one or more filesystems.
+      - block access to locally stored files as long as the mount is active3.
+      - tab completion is only allowed for the created directory3.
+
+Note: In the context of autofs, the term “mount” refers to the process of making a particular filesystem accessible at a certain point in the directory tree1
+
 
 ## Control the Boot Process
 - Manage the boot process to control offered services and to troubleshoot and repair problems.
